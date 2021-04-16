@@ -1,0 +1,25 @@
+﻿id,pregunta,tipo
+fecha,Marca temporal,c
+cumple,"a) De favor, me podr√≠a ayudar con que la √∫ltima persona que cumpli√≥ a√±os en su hogar sea quien conteste la encuesta. ",c
+casa,"b)	¬øVive usted en esta casa?",c
+credencial,"c)	¬øCuenta con credencial de lector vigente domiciliaria con esta vivienda?",c
+edad,"d)	Me podr√≠a decir su edad, de favor ",c
+sexo,"e)	Anotar sexo sin preguntar",c
+emocion,"1.	Pensando en c√≥mo se ha sentido en la √∫ltima semana, ¬øqu√© emoci√≥n describe mejor su estado de √°nimo?",c
+votar,"2.	¬øQu√© tan seguro est√° de asistir a votar en las pr√≥ximas elecciones del 6 de junio?",c
+municipal,"3.	Si en las pr√≥ximas elecciones para Presidente Municipal de Tuxtla Guti√©rrez los candidatos fueran los siguientes, ¬øpor qui√©n votar√≠a usted?",c
+partido,"4.	Independientemente de por qui√©n ha votado en pasadas elecciones, ¬øactualmente con cu√°l partido se siente usted m√°s identificado? ",c
+servicio_mejor,"5.	¬øCu√°l es el servicio p√∫blico que m√°s ha mejorado en su colonia durante los √∫ltimos tres a√±os?",c
+servicio_peor,"6.	¬øCu√°l es el servicio p√∫blico que m√°s ha empeorado en su colonia durante los √∫ltimos tres a√±os?",c
+amlo,"7.	En general, ¬øusted aprueba o desaprueba la forma en que el presidente Andr√©s Manuel L√≥pez Obrador realiza su trabajo?",c
+carlos,"8.	En general, ¬øusted aprueba o desaprueba la forma en que su presidente municipal Carlos Morales realiza su trabajo? ",c
+civil,¬øCu√°l es su estado civil?,c
+estudios,¬øCu√°l es su √∫ltimo grado de estudios concluido?,c
+ocupacion,¬øCu√°l es su principal ocupaci√≥n?,c
+personas,"En total y cont√°ndose usted, ¬øcu√°ntas personas viven en su casa?",c
+equipo,N√∫mero de equipo,c
+id_encuestador,N√∫mero del encuestador,c
+nombre_encuestador,Nombre del encuestador,c
+seccion,Secci√≥n,c
+manzana,Manzana,c
+encuesta,Persona,c
