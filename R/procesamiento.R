@@ -5,6 +5,7 @@ library(readr)
 library(lubridate)
 library(magrittr)
 library(readxl)
+library(sf)
 
 # leer bases
 equipo1 <- read_csv("data/TUXTLA GUTIÉRREZ, EQUIPO 1.csv")
@@ -23,15 +24,22 @@ rm(equipo1, equipo2, equipo3, equipo4)
 # INE
 edad_ine <- read_csv("data/INE/grupos_etarios.csv")
 
+# Shapefile
+mapa <- read_sf("~/Dropbox (Selva)/Ciencia de datos/Consultoría Estadística/Recursos/Externos/INE/SHP/2020/07 - Chiapas/SECCION.shp")
+
 # Limpar lista nominal ----------------------------------------------------
+#Filtrar estado y muni
 edad_ine %<>%  filter(NOMBRE_ENTIDAD == "CHIAPAS", NOMBRE_MUNICIPIO == "TUXTLA GUTIERREZ")
 
+# hacer columnas
 edad <-edad_ine %>%
   gather(grupo_nominal, nominal, c(LISTA_18_HOMBRES:LISTA_65_Y_MAS_MUJERES)) %>%
   # gather(grupo_padron, padron, c(PADRON_18_HOMBRES:PADRON_65_Y_MAS_MUJERES)) %>%
   select(SECCION, grupo_nominal, nominal)
-
-edad %<>%  mutate(grupo_nominal = gsub(pattern = "_HOMBRES", replacement = "", grupo_nominal),
+# Cambiar nombres por como están en la bd
+edad %<>% mutate(sexo=if_else(str_detect(grupo_nominal, pattern = "HOMBRES"),
+                             "Hombre", "Mujer"),
+  grupo_nominal = gsub(pattern = "_HOMBRES", replacement = "", grupo_nominal),
                   grupo_nominal = gsub(pattern = "_MUJERES", replacement = "", grupo_nominal))
 
 edad %<>%  mutate(
@@ -42,7 +50,7 @@ edad %<>%  mutate(
     grupo_nominal %in% c( "LISTA_45_49", "LISTA_50_54") ~  "45 a 54 años",
     grupo_nominal %in% c( "LISTA_55_59", "LISTA_60_64") ~   "55 a 64 años",
     grupo_nominal == "LISTA_65_Y_MAS" ~   "65 años o más" ) ) %>%
-  group_by(SECCION ,edad_nominal) %>%  summarise(n =sum(nominal)) %>%  ungroup()
+  group_by(SECCION, sexo, edad_nominal) %>%  summarise(n =sum(nominal)) %>%  ungroup()
 
 # limpiar bd --------------------------------------------------------------
 #Fecha y día
@@ -86,4 +94,6 @@ bd %>%  group_by(nombre_encuestador) %>%
   filter(duracion > 60)
 
 
-bd %>%  count(municipal) %>%  mutate(n = round(n*100/sum(n))) %>%  arrange(desc(n))
+bd %>%
+  # filter(!nombre_encuestador  %in%c("Isaac", "Antonio Cruz")) %>%
+  count(municipal) %>%  mutate(n = round(n*100/sum(n))) %>%  arrange(desc(n))

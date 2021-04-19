@@ -75,3 +75,5 @@ bd %>%  group_by(nombre_encuestador) %>%
 bd %>% filter()
 arrange(fecha) %>%  select(fecha, equipo, nombre_encuestador, seccion, manzana) %>%
   view()
+
+#Agrupar seccion y manzana y pegarsela al shp
