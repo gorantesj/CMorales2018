@@ -149,4 +149,19 @@ manzanas_en_muestra%>%
   filter(equipo==4) %>% pull(MANZANA) %>% unique() %>%
   as.numeric() %>% sort()
 
-
+# Sección sustituta
+estrato_sus <- secciones %>% filter(SECCION=="1938") %>% pull(estrato_nombre)
+set.seed(2021)
+estrato_nuevo <- secciones %>%
+  filter(estrato_nombre=="Periferia norte",
+         !(SECCION %in% manzanas_en_muestra$SECCION)) %>%
+  sample_n(size = 1)
+manzanas %>%
+  filter(SECCION==estrato_nuevo$SECCION) %>%
+  sample_n(size = MS) %>%
+  leaflet() %>%
+  addProviderTiles(providers$CartoDB) %>%
+  addPolygons(fillColor = ~pal(SECCION),
+              color = ~pal(SECCION),
+              label = ~glue::glue("Sección {SECCION}
+                                  Manzana {MANZANA}"))
