@@ -97,9 +97,12 @@ bd %<>%  group_by(nombre_encuestador) %>%
 # Revisar bd de encuestadores para determinar si se elimina a alguno
 bd %>%
   filter(!nombre_encuestador  %in%c("Isaac", "Pablo")) %>%
-  count(municipal) %>%  mutate(n = round(n*100/sum(n))) %>%  arrange(desc(n))
+  count(municipal) %>%  mutate(n = round(n*100/sum(n))) %>%
+  arrange(desc(n))
 
 #Agrupar seccion y manzana y pegarsela al shp
-enc <-bd %>%group_by(seccion, manzana) %>%  summarise(encuestas  = n())
-manzana %>%  inner_join(enc, by = c("MANZANA" = "manzana", "SECCION" = "seccion")) %>%
+enc <-bd %>%group_by(seccion, manzana) %>%
+  summarise(encuestas  = n())
+manzana %>%
+  inner_join(enc, by = c("MANZANA" = "manzana", "SECCION" = "seccion")) %>%
   select(SECCION, MANZANA, encuestas)
