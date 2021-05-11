@@ -35,13 +35,12 @@ secc %>%  inner_join(dm, by = "SECCION") %>%
   ggplot()+geom_sf(aes(fill = estrato, geometry = geometry))
 
 #Porcentaje de la lista nominal
-# totln<-
-# basetux %>%  filter(MUNICIPIO == "TUXTLA GUTIERREZ") %>%
-#   group_by(SECCION) %>% summarise(ln = sum(LISTA_NOMINAL, na.rm = T)) %>%
-#   left_join(dm) %>%
-#   group_by(estrato) %>%
-#   summarise(pctln = sum(ln*100)) %>%
-#   arrange(desc(ln))
+basetux %>%  filter(MUNICIPIO == "TUXTLA GUTIERREZ") %>%
+  group_by(SECCION) %>% summarise(ln = sum(LISTA_NOMINAL, na.rm = T)) %>%
+  left_join(dm) %>%
+  group_by(estrato) %>%
+  summarise(pctln = sum(ln*100)) %>%
+  arrange(desc(ln))
 
 
 
@@ -184,3 +183,7 @@ theme_minimal()+
 
 # saveRDS(manzanas_estrato, "~/Desktop/manzanas_estrato.rds")
 votgeodm %>%  write_excel_csv("~/Documents/Git/CMorales2018/data/estratos_final.csv")
+
+
+secc %>%  filter(SECCION %in% manzanas_en_muestra$SECCION) %>%
+  st_write("Mayo 2021/secciones_muestra.shp")

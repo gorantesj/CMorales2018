@@ -50,7 +50,7 @@ resumen <- secciones %>%
 # Secciones estratificadas
 estratos_secc <- secciones %>%
   split(.$estrato_nombre)
-set.seed(2021)
+set.seed(2022)
 # Muestra de estratos
 estratos_en_muestra <- resumen$estrato_nombre %>%
   map_df(~{
@@ -63,7 +63,7 @@ estratos_en_muestra <- resumen$estrato_nombre %>%
   })
 
 # Muestra de manzanas
-set.seed(2021)
+set.seed(2022)
 manzanas_en_muestra <- manzanas %>%
   filter(SECCION %in% estratos_en_muestra$SECCION) %>%
   group_by(SECCION) %>%
@@ -77,7 +77,7 @@ manzanas_en_muestra %>%
               label = ~as.character(SECCION))
 
 nrow(manzanas_en_muestra)*EM
-set.seed(2021)
+set.seed(2022)
 ruta <- manzanas_en_muestra %>%
   ungroup() %>%
   st_centroid() %>%
@@ -151,7 +151,7 @@ manzanas_en_muestra%>%
 
 # Sección sustituta
 estrato_sus <- secciones %>% filter(SECCION=="1938") %>% pull(estrato_nombre)
-set.seed(2021)
+set.seed(2022)
 estrato_nuevo <- secciones %>%
   filter(estrato_nombre=="Periferia norte",
          !(SECCION %in% manzanas_en_muestra$SECCION)) %>%
@@ -165,3 +165,49 @@ manzanas %>%
               color = ~pal(SECCION),
               label = ~glue::glue("Sección {SECCION}
                                   Manzana {MANZANA}"))
+
+#Lista nominal nueva
+edad_ine <- read_csv("data/INE/grupos_etarios.csv")
+
+#Filtrar estado y muni
+edad_ine %<>%  filter(NOMBRE_ENTIDAD == "CHIAPAS", NOMBRE_MUNICIPIO == "TUXTLA GUTIERREZ")
+
+# hacer columnas
+edad <-edad_ine %>%
+  gather(grupo_nominal, nominal, c(LISTA_18_HOMBRES:LISTA_65_Y_MAS_MUJERES)) %>%
+  # gather(grupo_padron, padron, c(PADRON_18_HOMBRES:PADRON_65_Y_MAS_MUJERES)) %>%
+  select(SECCION, grupo_nominal, nominal)
+# Cambiar nombres por como están en la bd
+edad %<>% mutate(sexo=if_else(str_detect(grupo_nominal, pattern = "HOMBRES"),
+                              "Hombre", "Mujer"),
+                 grupo_nominal = gsub(pattern = "_HOMBRES", replacement = "", grupo_nominal),
+                 grupo_nominal = gsub(pattern = "_MUJERES", replacement = "", grupo_nominal))
+
+lista_nominal <- edad %>%  mutate(
+  edad_nominal = case_when(
+    grupo_nominal %in% c( "LISTA_18", "LISTA_19", "LISTA_20_24") ~   "18 a 24 años",
+    grupo_nominal %in% c( "LISTA_25_29", "LISTA_30_34") ~    "25 a 34 años",
+    grupo_nominal %in% c( "LISTA_35_39", "LISTA_40_44") ~   "35 a 44 años",
+    grupo_nominal %in% c( "LISTA_45_49", "LISTA_50_54") ~  "45 a 54 años",
+    grupo_nominal %in% c( "LISTA_55_59", "LISTA_60_64") ~   "55 a 64 años",
+    grupo_nominal == "LISTA_65_Y_MAS" ~   "65 años o más" ) ) %>%
+  group_by(seccion =SECCION, sexo,edad= edad_nominal) %>%  summarise(n =sum(nominal)) %>%  ungroup()
+
+#cuotas
+cuotas <- lista_nominal %>%  filter(seccion %in% manzanas_en_muestra$SECCION)%>%
+  group_by(seccion) %>% mutate(probabilidad=n/sum(n)) %>%
+  mutate(entrevistas= round(probabilidad*57)) %>%
+  # ungroup() %>%  summarise(sum(entrevistas)) %>%
+  select(SECCION= seccion, sexo, edad, entrevistas)
+
+cuotas %>%   write_excel_csv("Mayo 2021/cuotas.csv")
+
+manzanas_en_muestra %>%  write_excel_csv("Mayo 2021/muestra.csv")
+saveRDS(manzanas_en_muestra, "Mayo 2021/muestra.rds")
+
+manzanas_en_muestra %>%  left_join(cuotas, by ="SECCION")
+
+
+
+
+
