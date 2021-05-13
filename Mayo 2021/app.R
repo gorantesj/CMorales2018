@@ -20,6 +20,7 @@ library(glue)
 library(lubridate)
 library(ggplot2)
 library(forcats)
+library(magrittr)
 library(shinycssloaders)
 
 

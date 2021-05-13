@@ -6,7 +6,7 @@ library(sf)
 
 
 ##Leer bds
-
+setwd("~/Documents/Git/CMorales2018/")
 # electorales
 basetux <- read_csv("~/Documents/Git/analisis_nuevas/Tuxtla/inp/2018_SEE_AYUN_CHIS_CAS.csv")
 basetux <- basetux %>% rename("PANAL" = "X19")
@@ -190,8 +190,9 @@ library(sf)
 library(leaflet)
 
 # Cargar info
-manzanas <- read_rds(file = "data/manzanas_estrato.rds") %>%
-  filter(STATUS!=2)
+# manzanas <- read_rds(file = "data/manzanas_estrato.rds") %>%
+#   filter(STATUS!=2)
+manzanas <- manzanas_estrato
 secciones <- read_csv("data/estratos.csv")
 
 pal <- colorFactor(
@@ -216,7 +217,7 @@ secciones %>%
 N <- 1200
 
 #Manzanas por Sección
-MS <- 7
+MS <- 8
 # Manzanas
 M <- N/MS
 # Encuestas por manzana
@@ -340,14 +341,17 @@ lista_nominal <- edad %>%  mutate(
 #cuotas
 cuotas <- lista_nominal %>%  filter(seccion %in% manzanas_en_muestra$SECCION)%>%
   group_by(seccion) %>% mutate(probabilidad=n/sum(n)) %>%
-  mutate(entrevistas= round(probabilidad*57)) %>%
-  # ungroup() %>%  summarise(sum(entrevistas)) %>%
+  mutate(entrevistas= round(probabilidad*63.4)) %>%
+   # ungroup() %>%  summarise(sum(entrevistas)) %>%
   select(SECCION= seccion, sexo, edad, entrevistas)
 
 cuotas %>%   write_excel_csv("Mayo 2021/cuotas.csv")
 
-manzanas_en_muestra %>%  write_excel_csv("Mayo 2021/muestra.csv")
-saveRDS(manzanas_en_muestra, "Mayo 2021/muestra.rds")
+manzanas_en_muestra %>% write_sf("Mayo 2021/muestra.shp")
+# saveRDS(manzanas_en_muestra, "Mayo 2021/muestra.rds")
+
+secc %>%  filter(SECCION %in% manzanas_en_muestra$SECCION) %>%
+  write_sf("Mayo 2021/secciones_muestra.shp")
 
 manzanas_en_muestra %>%  left_join(cuotas, by ="SECCION")
 
