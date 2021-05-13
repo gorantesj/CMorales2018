@@ -75,7 +75,8 @@ votgeo<-  info$bd %>%  filter(municipio == "TUXTLA GUTIERREZ") %>%
                                    morena = sum(`votos_coalición_pt morena es`),
                                    pri  = sum(`votos_coalición_pri pvem na pcu`),
                                    ln = sum(nominal),
-                                   total = sum(total))
+                                   total = sum(total),
+                                   part= sum(total))
 
 votgeo <-secc %>%  inner_join(votgeo, by = c(  "SECCION" = "seccion"))
 votgeo%>%
@@ -90,7 +91,8 @@ resumen <- votgeo %>%
   summarise(
     morena=sum(morena)/sum(ln),
     var_morena=var(morena/ln),
-    ln = sum(ln)) %>%
+    ln = sum(ln),
+    participacion = sum(part)) %>%
   mutate(ln=ln/sum(ln))
 
 # x y y del centroide y pegarla  al shp y relativizar morena
@@ -99,7 +101,7 @@ votgeo_tb<-votgeo%>%
   st_centroid() %>% mutate(x=st_coordinates(geometry)[,1],
                            y=st_coordinates(geometry)[,2]) %>%  as_tibble() %>%
   mutate(across(c("morena","pan","pri"), ~.x/ln), dif = morena-pan) %>%
-  select(SECCION, x, y, pan:pri, estrato, dif, ln)
+  select(SECCION, x, y, pan:pri, estrato, dif, ln, part)
 
 votgeo_tb %>%  ggplot()+ geom_point(aes(x =x, y = y, color = pri))+
   scale_color_gradient2(low = "red", high = "blue", midpoint = .25)
@@ -145,7 +147,7 @@ resumen_dif <- votgeodm %>%
   group_by(estrato_final) %>%
   summarise(
     ln= sum(ln),
-    diferencia=sum(dif),
+    diferencia=mean(dif),
     var_dif=var(dif)) %>%
   mutate(ln=ln/sum(ln))
 
@@ -167,9 +169,10 @@ resumen_final <- votgeodm %>%
   summarise(
     n= n(),
     ln= sum(ln),
-    diferencia=sum(dif),
-    var_dif=var(dif)) %>%
-  mutate(ln=ln/sum(ln)) %>%  arrange(diferencia)
+    diferencia=mean(dif),
+    var_dif=var(dif),
+    part = sum(part)) %>%
+  mutate(ln=ln/sum(ln), part = part/sum(part)) %>%  arrange(diferencia)
 
 # Revisar estratos de manzanas
 manzanas_estrato <-manzanas %>%  inner_join(votgeodm, by = "SECCION")
@@ -181,27 +184,34 @@ manzanas_estrato %>%  ggplot()+
   theme_minimal()+
   theme(panel.grid = element_blank())
 
+# manzanas_estrato %>%  write_sf("Mayo 2021/estratos.shp")
+
 # saveRDS(manzanas_estrato, "~/Desktop/manzanas_estrato.rds")
 # votgeodm %>%  write_excel_csv("~/Documents/Git/CMorales2018/data/estratos_final.csv")
 
+# votgeodm %>% write_excel_csv("data/estratos_part.csv")
 # Cargar librerías
 library(tidyverse)
 library(sf)
 library(leaflet)
 
 # Cargar info
-# manzanas <- read_rds(file = "data/manzanas_estrato.rds") %>%
-#   filter(STATUS!=2)
+# manzanas <- st_read("Mayo 2021/estratos.shp")
+
 manzanas <- manzanas_estrato
-secciones <- read_csv("data/estratos.csv")
+manzanas <-manzanas %>%
+  filter(STATUS!=2)
+
+secciones <- read_csv("data/estratos_part.csv")
 
 pal <- colorFactor(
   palette = c('red', 'blue', 'cyan', 'purple', 'black'),
   domain = manzanas$estrato_nombre
 )
 
-
-leaflet(manzanas) %>%
+manzanas %>%
+  # filter(SECCION %in% c(1693, 1692, 1631)) %>%
+  leaflet() %>%
   addTiles() %>%
   addPolygons(fillColor = ~pal(estrato_nombre),
               stroke = F,
@@ -228,16 +238,18 @@ EM <- 8
 resumen <- secciones %>%
   group_by(estrato_nombre) %>%
   summarise(ln=sum(ln),
+            part = sum(part),
             secciones=n()) %>%
   mutate(ln=ln/sum(ln),
-         encuestas=round(N*ln),
+         part = part /sum(part),
+         encuestas=round(N*part),
          manzanas_muestra=round(encuestas/EM),
          secciones_muestra=round(manzanas_muestra/MS))
 
 # Secciones estratificadas
 estratos_secc <- secciones %>%
   split(.$estrato_nombre)
-set.seed(2022)
+set.seed(222)
 # Muestra de estratos
 estratos_en_muestra <- resumen$estrato_nombre %>%
   map_df(~{
@@ -246,11 +258,11 @@ estratos_en_muestra <- resumen$estrato_nombre %>%
                               filter(estrato_nombre==.x) %>%
                               pull(secciones_muestra),
                             nrow(.)
-      )), weight = ln)
+      )), weight = part)
   })
 
 # Muestra de manzanas
-set.seed(2022)
+set.seed(222)
 manzanas_en_muestra <- manzanas %>%
   filter(SECCION %in% estratos_en_muestra$SECCION) %>%
   group_by(SECCION) %>%
@@ -264,50 +276,51 @@ manzanas_en_muestra %>%
               label = ~as.character(SECCION))
 
 nrow(manzanas_en_muestra)*EM
-set.seed(2022)
-ruta <- manzanas_en_muestra %>%
-  ungroup() %>%
-  st_centroid() %>%
-  mutate(x=st_coordinates(geometry)[,1],
-         y=st_coordinates(geometry)[,2],
-  ) %>%
-  as_tibble() %>%
-  select(x,y) %>%
-  scale() %>%
-  dist() %>%
-  hclust(method = "centroid") %>%
-  cutree(k = 12)
-
-
-
-manzanas_en_muestra <- manzanas_en_muestra %>%
-  ungroup() %>%
-  mutate(ruta=ruta,
-         equipo=case_when((ruta %in% c(2))~1,
-                          (MANZANA==51 & SECCION ==1602)~1,
-                          (ruta %in% c(1,3, 12,7))~2,
-                          (ruta %in% c(6,4,10, 11))~3,
-                          (ruta %in% c(5,8,9))~4
-         ))
-
-manzanas_en_muestra %>%
-  group_by(ruta) %>%
-  summarise(n=n())
-
-manzanas_en_muestra %>%
-  group_by(equipo) %>%
-  summarise(n=n())
+set.seed(222)
+# ruta <- manzanas_en_muestra %>%
+#   ungroup() %>%
+#   st_centroid() %>%
+#   mutate(x=st_coordinates(geometry)[,1],
+#          y=st_coordinates(geometry)[,2],
+#   ) %>%
+#   as_tibble() %>%
+#   select(x,y) %>%
+#   scale() %>%
+#   dist() %>%
+#   hclust(method = "centroid") %>%
+#   cutree(k = 12)
+#
+#
+#
+# manzanas_en_muestra <- manzanas_en_muestra %>%
+#   ungroup() %>%
+#   mutate(ruta=ruta,
+#          equipo=case_when((ruta %in% c(2))~1,
+#                           (MANZANA==51 & SECCION ==1602)~1,
+#                           (ruta %in% c(1,3, 12,7))~2,
+#                           (ruta %in% c(6,4,10, 11))~3,
+#                           (ruta %in% c(5,8,9))~4
+#          ))
+#
+# manzanas_en_muestra %>%
+#   group_by(ruta) %>%
+#   summarise(n=n())
+#
+# manzanas_en_muestra %>%
+#   group_by(equipo) %>%
+#   summarise(n=n())
 
 pal <- colorFactor(
-  palette = c("red", "blue", "green","orange"),
-  domain = manzanas_en_muestra$equipo
+  palette = c("red", "blue", "green","orange", "pink"),
+  domain = manzanas_en_muestra$estrato_nombre
 )
 manzanas_en_muestra%>%
+  # filter(SECCION %in% c(1693, 1892, 1631))
   leaflet() %>%
   addProviderTiles("CartoDB.Positron") %>%
-  addPolygons(fillColor = ~pal(equipo),
-              color = ~pal(equipo),
-              label = ~glue::glue("{ruta} Sección {SECCION}
+  addPolygons(fillColor = ~pal(estrato_nombre),
+              color = ~pal(estrato_nombre),
+              label = ~glue::glue(" Sección {SECCION}
                                   Manzana {MANZANA}"))
 
 
@@ -341,7 +354,7 @@ lista_nominal <- edad %>%  mutate(
 #cuotas
 cuotas <- lista_nominal %>%  filter(seccion %in% manzanas_en_muestra$SECCION)%>%
   group_by(seccion) %>% mutate(probabilidad=n/sum(n)) %>%
-  mutate(entrevistas= round(probabilidad*63.4)) %>%
+  mutate(entrevistas= round(probabilidad*67)) %>%
    # ungroup() %>%  summarise(sum(entrevistas)) %>%
   select(SECCION= seccion, sexo, edad, entrevistas)
 

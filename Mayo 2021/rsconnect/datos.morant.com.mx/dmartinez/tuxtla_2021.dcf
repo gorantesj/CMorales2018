@@ -1,0 +1,14 @@
+name: tuxtla_2021
+title: Tuxtla 2021
+username: dmartinez
+account: dmartinez
+server: datos.morant.com.mx
+hostUrl: https://datos.morant.com.mx/__api__
+appId: 131
+bundleId: 24229
+url: https://datos.morant.com.mx:443/tuxtla21/
+when: 1620941755.88334
+lastSyncTime: 1620941755.88336
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: Diseño.R
