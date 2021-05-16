@@ -74,7 +74,8 @@ bd_e <- enc %>% as_tibble %>%
                                  c("18 a 24 años","25 a 34 años","35 a 44 años","45 a 54 años","55 a 64 años","65 años o más")))) %>%
   group_by(seccion) %>%
   count(edad,PD) %>%
-  ungroup %>% select(seccion,sexo =PD,edad,hecho = n)
+  ungroup %>% select(seccion,sexo =PD,edad,hecho = n) %>%
+  mutate(seccion = as.numeric(seccion))
 
 faltan <- bd_m %>% left_join(bd_e) %>% mutate(faltan = if_else(is.na(hecho),true = n,false = n - hecho))
 
@@ -116,13 +117,17 @@ server <- function(input, output, session) {
     leaflet(muestra) %>% addPolygons(weight = 1, label = ~glue::glue("Sección: {SECCION}, Manzana: {MANZANA}")) %>%
       addProviderTiles("CartoDB.Positron") %>%
       leaflet.extras::addResetMapButton() %>%
+      addCircleMarkers(data = enc,
+                       group = "encuestas_iniciales",stroke = F,color = ~pal(Encuestador),fillOpacity = 1,
+                       label = ~glue("Sección: {seccion} id: {id}, encuestador: {Encuestador}")) %>%
       addPopups((bbox[[1]]+bbox[[3]])/2, bbox[[4]], content, group = "info",
                 options = popupOptions(closeButton = FALSE)
       ) %>%
       addLegend(pal = pal, values = ~Encuestador, data = enc, position = "bottomleft",group = "encuestador") %>%
       addControlGPS(options = gpsOptions(position = "topleft", activate = TRUE,
                                          autoCenter = TRUE, maxZoom = 10,
-                                         setView = TRUE))
+                                         setView = TRUE)) %>%
+      addLayersControl(overlayGroups = "encuestas_iniciales",position = "bottomright")
   })
 
   output$faltantes <- render_gt({
@@ -153,7 +158,7 @@ server <- function(input, output, session) {
     )
     ja <- proxy %>% flyToBounds(bbox[[1]],bbox[[2]],bbox[[3]],bbox[[4]]) %>%
       clearGroup(group = "man") %>% clearGroup(group = "encuestas") %>% clearGroup(group = "seccs") %>%
-      clearGroup(group = "info") %>%
+      clearGroup(group = "info") %>% clearGroup(group = "encuestas_iniciales") %>%
       addPolygons(data = man, fill = F, color = "red", group = "man", weight = 5,fillOpacity = .1,stroke = T) %>%
       addPolygons(data = seccs, fill = F, color = "black", group = "seccs", weight = 5, opacity = 1)
 
@@ -177,6 +182,9 @@ server <- function(input, output, session) {
       clearGroup(group = "info") %>%
       clearGroup(group = "man") %>%
       flyToBounds(bbox[[1]],bbox[[2]],bbox[[3]],bbox[[4]]) %>%
+      addCircleMarkers(data = enc,
+                       group = "encuestas_iniciales",stroke = F,color = ~pal(Encuestador),fillOpacity = 1,
+                       label = ~glue("Sección: {seccion} id: {id}, encuestador: {Encuestador}")) %>%
       # addPolygons(data = muestra, color = "red", weight = 1, group = "inicio",
       #             label = ~glue::glue("Sección: {SECCION}, Manzana: {MANZANA}") )%>%
       addPopups((bbox[[1]]+bbox[[3]])/2, bbox[[4]], content, group = "info",
