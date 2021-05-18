@@ -5,10 +5,10 @@ account: dmartinez
 server: datos.morant.com.mx
 hostUrl: https://datos.morant.com.mx/__api__
 appId: 131
-bundleId: 24229
-url: https://datos.morant.com.mx:443/tuxtla21/
-when: 1620941755.88334
-lastSyncTime: 1620941755.88336
+bundleId: 24269
+url: https://datos.morant.com.mx:443/content/131/
+when: 1621342990.20086
+lastSyncTime: 1621342990.20087
 asMultiple: FALSE
 asStatic: FALSE
 ignoredFiles: Diseño.R
