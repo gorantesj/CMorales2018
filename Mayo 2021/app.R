@@ -31,11 +31,12 @@ bd_m <- read_csv("cuotas.csv")
 bd_m %<>%  mutate(seccion = SECCION, n = entrevistas)
 
 eliminar <- read_csv("eliminar.csv")
-bd <- read_xlsx("bd.xlsx") %>% filter(Date > ymd_hm("2021-04-24 13:00")) %>%
+bd <- read_xlsx("bd.xlsx") %>%
+  # filter(Date > ymd_hm("2021-04-24 13:00")) %>%
   anti_join(eliminar) %>% mutate(duracion = VEnd-VStart)
 
 # Correcciones ------------------------------------------------------------
-#
+# bd <- bd %>% filter(Srvyr != "Tadeo Sevilla")
 # bd <- bd %>% mutate(SECCIO = case_when(SbjNum %in% c(150900528, 150900529, 150900530, 150900531)~ "684",
 #                                        SbjNum == 150854925~"679",
 #                                        SbjNum %in% c(
