@@ -36,6 +36,7 @@ bd <- read_xlsx("bd.xlsx") %>%
   anti_join(eliminar) %>% mutate(duracion = VEnd-VStart)
 
 # Correcciones ------------------------------------------------------------
+bd %<>% filter(duracion >= 3 )
 # bd <- bd %>% filter(Srvyr != "Tadeo Sevilla")
 # bd <- bd %>% mutate(SECCIO = case_when(SbjNum %in% c(150900528, 150900529, 150900530, 150900531)~ "684",
 #                                        SbjNum == 150854925~"679",
@@ -67,8 +68,9 @@ bd <- read_xlsx("bd.xlsx") %>%
 
 
 
-enc <- bd %>% select(seccion = SECCIO,PC,PD, Encuestador = Srvyr, id = SbjNum, Latitude,Longitude) %>% na.omit  %>%
-  mutate(Longitude = as.character(Longitude)) %>% st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326")
+enc <- bd %>% select(seccion = SECCIO,PC,PD, Encuestador = Srvyr, id = SbjNum, Latitude,Longitude) %>%
+  # na.omit  %>%
+  mutate(Longitude = as.character(Longitude))
 
 bd_e <- enc %>% as_tibble %>%
   mutate(edad = as.character(cut(PC,c(17,24,34,44,54,64,200),
@@ -80,9 +82,11 @@ bd_e <- enc %>% as_tibble %>%
 
 faltan <- bd_m %>% left_join(bd_e) %>% mutate(faltan = if_else(is.na(hecho),true = n,false = n - hecho))
 
+enc <- enc %>%  na.omit() %>%
+  st_as_sf(coords = c("Longitude","Latitude"), crs = "+init=epsg:4326")
 content <- paste(sep = " ",
                  "<b>Total de encuestas</b>:","<br/>",
-                 nrow(enc),"al",
+                 faltan$hecho %>%  sum(na.rm = T),"al",
                  format(today(),"%d de abril %y")
 )
 pal <- colorFactor(rainbow(n=length(unique(enc$Encuestador))),domain = unique(enc$Encuestador))
