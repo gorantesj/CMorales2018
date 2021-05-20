@@ -36,7 +36,7 @@ bd <- read_xlsx("bd.xlsx") %>%
   anti_join(eliminar) %>% mutate(duracion = VEnd-VStart)
 
 # Correcciones ------------------------------------------------------------
-bd %<>% filter(duracion >= 3 )
+bd %<>% filter(duracion >= 2 )
 # bd <- bd %>% filter(Srvyr != "Tadeo Sevilla")
 # bd <- bd %>% mutate(SECCIO = case_when(SbjNum %in% c(150900528, 150900529, 150900530, 150900531)~ "684",
 #                                        SbjNum == 150854925~"679",
