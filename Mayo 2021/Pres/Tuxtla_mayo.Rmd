@@ -174,7 +174,7 @@ svymean(design= diseño,  ~emocion ) %>%
 de ánimo?") %>% 
   hc_add_theme(tema) %>% 
   hc_tooltip(enabled= F) %>% 
-  hc_colors(c(rep(base,5), otro, base, base, ns))
+  hc_colors(c(rep(base,5), otro, base, base, base, ns))
 
 ```
 
@@ -441,28 +441,27 @@ svymean(~cohabitantes, diseño) %>% as_tibble(rownames = "x") %>%
 
 
 ```
-<!-- --- -->
-<!-- class: left, top -->
+---
+class: left, top
 
-<!-- ## Metodología -->
+## Metodología
 
-<!--  Tipo de estudio: Encuesta municipal en vivienda. -->
+ Tipo de estudio: Encuesta municipal en vivienda.
 
-<!--  Técnica de recolección de datos: Entrevistas personales (cara a cara) en vivienda utilizando un cuestionario estructurado aplicado por encuestadores en dispositivos electrónicos. -->
+ Técnica de recolección de datos: Entrevistas personales (cara a cara) en vivienda utilizando un cuestionario estructurado aplicado por encuestadores en dispositivos electrónicos.
 
-<!--  Fecha de levantamiento: 29 de abril - 2 de mayo del 2021. -->
+ Fecha de levantamiento: 15 - 18 de mayo del 2021.
 
-<!--  Universo de análisis: Mexicanos mayores a 18 años residentes en Benito Juárez, Quintana Roo. -->
+ Universo de análisis: Mexicanos mayores a 18 años residentes en Tuxtla Gutiérrez, Chiapas.
 
-<!--  Tamaño de la muestra: `r nrow(bd)` entrevistas. -->
+ Tamaño de la muestra: `r nrow(bd)` entrevistas.
 
-<!--  Nivel de confianza estadístico: 95%. -->
+ Nivel de confianza estadístico: 95%.
 
-<!--  Margen de error: (+/-): 3.88% asumiendo un muestreo aleatorio simple. -->
+ Margen de error: (+/-): 3.02%.
 
-<!--  Efecto de diseño máximo: 8.22 -->
+ Método de muestreo: Muestreo aleatorio polietápico, estratos según comportamiento electoral, conglomerados por manzana, vivienda y persona. Resultaron seleccionadas 18 secciones, de las cuales se tomaron 8 manzanas en cada una, y a cada manzana le corresponden 8 entrevistas.
 
-<!--  Método de muestreo: Muestreo aleatorio polietápico, en el que la primera etapa consiste en estratificación por distritos locales; la segunda, conglomerados por localidad en la que se sortea una sección con dos manzanas en las que se realizan 10 entrevistas en cada una.  -->
 
 
 
